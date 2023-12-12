@@ -61,14 +61,26 @@ def process_dmw(file_dmw,file_fundo,v_extent):
 
     # Define the size of the saved picture=================================================================
     d_p_i = 150
-    fig = plt.figure(figsize=(2000 / float(d_p_i), 2000 / float(d_p_i)), frameon=True, 
-                     dpi=d_p_i, edgecolor='black', facecolor='black')
+    fig = plt.figure(figsize=(2000/ float(d_p_i), 2000/ float(d_p_i)), frameon=True, 
+    dpi=d_p_i, edgecolor='black', facecolor='black')
     
-    # Utilizando projecao geoestacionaria no cartopy
-    ax = plt.axes(projection=ccrs.PlateCarree())
-
-     # Area de recorte
-    img_extent = [extent[0], extent[2], extent[1], extent[3]] 
+    # Define the projection
+    proj = ccrs.PlateCarree()
+    
+    # Use the PlateCarree projection in cartopy
+    ax = plt.axes([0, 0, 1, 1], projection=proj)
+    
+    # Define the image extent
+    img_extent = [extent[0], extent[2], extent[1], extent[3]]
+    ax.set_extent(img_extent, ccrs.PlateCarree())
+  
+    # Insert the legend
+    ax.text(extent[2] - 11,extent[1] + 8.5,'249-100 hPa', fontsize = 20,color='#0000FF')
+    ax.text(extent[2] - 11,extent[1] + 7,'399-250 hPa', fontsize = 20,color='#309AFF')
+    ax.text(extent[2] - 11,extent[1] + 5.5,'400-549 hPa', fontsize = 20,color='#00FF00')
+    ax.text(extent[2] - 11,extent[1] + 4,'699-550 hPa', fontsize = 20,color='#FFFF00')
+    ax.text(extent[2] - 11,extent[1] + 2.5,'849-700 hPa', fontsize = 20,color='#FF0000')
+    ax.text(extent[2] - 11,extent[1] + 1,'1000-850 hPa', fontsize = 20,color='#FF2FCD') 
 
     # Plot the Data =======================================================================================
     if Band <= 6:
@@ -77,9 +89,11 @@ def process_dmw(file_dmw,file_fundo,v_extent):
         cpt = loadCPT(f'{dir_colortables}\\Square Root Visible Enhancement.cpt')
         # Makes a linear interpolation
         cpt_convert = LinearSegmentedColormap('cpt', cpt)
+      
         # Plot the GOES-16 channel with the converted CPT colors (you may alter the min and max to match your preference)
         ax.imshow(data_fundo, origin='upper', cmap=cpt_convert, vmin=0, vmax=1, alpha = 1.0,extent=img_extent)  
         color_shapefile = "white"
+      
         # Adicionando o shapefile dos estados brasileiros
         adicionando_shapefile(v_extent, ax,color_shapefile)
 
@@ -94,11 +108,14 @@ def process_dmw(file_dmw,file_fundo,v_extent):
     elif Band == 7:
         # Converts a CPT file to be used in Python
         cpt = loadCPT(f'{dir_colortables}\\SVGAIR2_TEMP.cpt')
+      
         # Makes a linear interpolation
         cpt_convert = LinearSegmentedColormap('cpt', cpt) 
+      
         # Plot the GOES-16 channel with the converted CPT colors (you may alter the min and max to match your preference)
         ax.imshow(data_fundo, origin='upper', cmap='gray_r', vmin=-93.15, vmax=46.85, alpha = 1.0,extent=img_extent)
         color_shapefile = "white"
+      
         # Adicionando o shapefile dos estados brasileiros
         adicionando_shapefile(v_extent, ax,color_shapefile)
         # Adicionando  linhas dos litorais
@@ -107,14 +124,18 @@ def process_dmw(file_dmw,file_fundo,v_extent):
         adicionando_descricao_imagem(description, institution, ax, fig)
         # Adicionando os logos
         adicionando_logos(fig)
+      
     elif Band > 7 and Band < 11:
         # Converts a CPT file to be used in Python
         cpt = loadCPT(f'{dir_colortables}\\SVGAWVX_TEMP.cpt')
+      
         # Makes a linear interpolation
         cpt_convert = LinearSegmentedColormap('cpt', cpt) 
+      
         # Plot the GOES-16 channel with the converted CPT colors (you may alter the min and max to match your preference)
         ax.imshow(data_fundo, origin='upper', cmap=cpt_convert, vmin=-112.15, vmax=56.85, alpha = 1.0,extent=img_extent)
         color_shapefile = "cyan"
+      
         # Adicionando o shapefile dos estados brasileiros
         adicionando_shapefile(v_extent, ax,color_shapefile)
         # Adicionando  linhas dos litorais
@@ -123,15 +144,19 @@ def process_dmw(file_dmw,file_fundo,v_extent):
         adicionando_descricao_imagem(description, institution, ax, fig)
         # Adicionando os logos
         adicionando_logos(fig)
+      
     elif Band > 10:
         # Converts a CPT file to be used in Python
-        cpt = loadCPT(f'{dir_colortables}\\IR4AVHRR6.cpt')   
+        cpt = loadCPT(f'{dir_colortables}\\IR4AVHRR6.cpt')  
+      
         # Makes a linear interpolation
         cpt_convert = LinearSegmentedColormap('cpt', cpt) 
+      
         # Plot the GOES-16 channel with the converted CPT colors (you may alter the min and max to match your preference)
         #ax.imshow(data, origin='upper', cmap=cpt_convert, vmin=-103, vmax=84, alpha = 1.0)
         ax.imshow(data_fundo, origin='upper', cmap='gray_r', vmin=-93.15, vmax=46.85, alpha = 1.0,extent=img_extent)
         color_shapefile = "white"
+      
         # Adicionando o shapefile dos estados brasileiros
         adicionando_shapefile(v_extent, ax,color_shapefile)
         # Adicionando  linhas dos litorais
@@ -261,15 +286,7 @@ def process_dmw(file_dmw,file_fundo,v_extent):
         u_comp = np.asarray(u) 
         v_comp = np.asarray(v)
     
-        ax.barbs(lons,lats,u_comp,v_comp,length=5, barbcolor=color,pivot='middle')
-    
-    # Insert the legend
-    plt.text(extent[0] + 0.5,extent[1] + 6.6,'249-100 hPa', fontsize = 25,color='#0000FF')# Blue
-    plt.text(extent[0] + 0.5,extent[1] + 5.5,'399-250 hPa', fontsize = 25,color='#309AFF') # Light Blue
-    plt.text(extent[0] + 0.5,extent[1] + 4.5,'400-549 hPa', fontsize = 25,color='#00FF00') # Green
-    plt.text(extent[0] + 0.5,extent[1] + 3.5,'699-550 hPa', fontsize = 25,color='#FFFF00') # Yellow
-    plt.text(extent[0] + 0.5,extent[1] + 2.5,'849-700 hPa', fontsize = 25,color='#FF0000') # Red
-    plt.text(extent[0] + 0.5,extent[1] + 1.5,'1000-850 hPa', fontsize = 25,color='#FF2FCD') # Violet 
+        ax.barbs(lons,lats,u_comp,v_comp,length=5, barbcolor=color,pivot='middle',transform=ccrs.PlateCarree())
     
     # Salvando a imagem de saida -- Alterar diretório pra salvar
     plt.savefig(f'{dir_out}{rgb_type}/{rgb_type}_{date_file}_{v_extent}.png', bbox_inches='tight', pad_inches=0, dpi=d_p_i)
