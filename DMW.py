@@ -54,7 +54,7 @@ def process_dmw(file_dmw,file_fundo,v_extent):
         # Lê o retorno da função
         data_fundo = grid.ReadAsArray()- 273.15
         
-        # Choose a title for the plot
+    # Choose a title for the plot
     description = f"GOES-16 Derived Motion Winds - Band {str(Band)} {Wavelenghts[int(Band)]} {Unit} {date} {time}"
     # Insert the institution name
     institution = "CEPAGRI-UNICAMP"
@@ -75,12 +75,14 @@ def process_dmw(file_dmw,file_fundo,v_extent):
     ax.set_extent(img_extent, ccrs.PlateCarree())
   
     # Insert the legend
-    ax.text(extent[2] - 11,extent[1] + 8.5,'249-100 hPa', fontsize = 20,color='#0000FF')
-    ax.text(extent[2] - 11,extent[1] + 7,'399-250 hPa', fontsize = 20,color='#309AFF')
-    ax.text(extent[2] - 11,extent[1] + 5.5,'400-549 hPa', fontsize = 20,color='#00FF00')
-    ax.text(extent[2] - 11,extent[1] + 4,'699-550 hPa', fontsize = 20,color='#FFFF00')
-    ax.text(extent[2] - 11,extent[1] + 2.5,'849-700 hPa', fontsize = 20,color='#FF0000')
-    ax.text(extent[2] - 11,extent[1] + 1,'1000-850 hPa', fontsize = 20,color='#FF2FCD') 
+    # ax.text(extent[2] - 11,extent[1] + 8.5,'249-100 hPa', fontsize = 20,color='#0000FF')
+    # ax.text(extent[2] - 11,extent[1] + 7,'399-250 hPa', fontsize = 20,color='#309AFF')
+    # ax.text(extent[2] - 11,extent[1] + 5.5,'400-549 hPa', fontsize = 20,color='#00FF00')
+    # ax.text(extent[2] - 11,extent[1] + 4,'699-550 hPa', fontsize = 20,color='#FFFF00')
+    # ax.text(extent[2] - 11,extent[1] + 2.5,'849-700 hPa', fontsize = 20,color='#FF0000')
+    # ax.text(extent[2] - 11,extent[1] + 1,'1000-850 hPa', fontsize = 20,color='#FF2FCD') 
+    legenda = plt.imread(dir_logos + 'dmw_legend.png')  # Lendo o arquivo do logo
+    fig.figimage(legenda, 1750, 70, zorder=1, alpha=0.8, origin='upper')  # Plotando legenda
 
     # Plot the Data =======================================================================================
     if Band <= 6:
@@ -191,21 +193,11 @@ def process_dmw(file_dmw,file_fundo,v_extent):
     lon_ind = lon_ind[(lon_ind >= latui) & (lon_ind <= latli)]
     
     # Create the variables lists ==================================================
-    pressure_a = []
-    temperature_a = []
-    wind_direction_a = []
-    wind_speed_a = []
-    lats_a = []
-    lons_a = []
-    
-    # For each item, append the values to the respective variables ================
-    for item in lon_ind:
-        lons_a.append(lons[item])
-        lats_a.append(lats[item])
-        pressure_a.append(pressure[item])
-        temperature_a.append(temperature[item])
-        wind_direction_a.append(wind_direction[item])
-        wind_speed_a.append(wind_speed[item])
+    pressure_a = np.take(pressure,lon_ind)
+    wind_direction_a = np.take(wind_direction,lon_ind)
+    wind_speed_a = np.take(wind_speed,lon_ind)
+    lats_a = np.take(lats,lon_ind)
+    lons_a = np.take(lons,lon_ind)
     
     # Read the variables as numpy arrays
     temperature = np.asarray(temperature_a)
@@ -246,32 +238,24 @@ def process_dmw(file_dmw,file_fundo,v_extent):
             color = '#FF2FCD' # Violet   
         
         # Create the variables lists (considerign only the given pressure range)
-        pressure_b = []
-        temperature_b = []
-        wind_direction_b = []
-        wind_speed_b = []
-        lats_b = []
-        lons_b = []
+        wind_direction_b = np.take(wind_direction_a,pressure_index)
+        wind_speed_b = np.take(wind_speed_a,pressure_index)
+        lats_b = np.take(lats_a,pressure_index)
+        lons_b = np.take(lons_a,pressure_index)
     
-        # For each item, append the values to the respective variables 
-        for item in pressure_index:
-            lons_b.append(lons_a[item])
-            lats_b.append(lats_a[item])
-            pressure_b.append(pressure_a[item])
-            temperature_b.append(temperature_a[item])
-            wind_direction_b.append(wind_direction_a[item])
-            wind_speed_b.append(wind_speed_a[item])
             
         # Final variables for the given pressure range
         # Read the variables as numpy arrays
-        pressure = np.asarray(pressure_b)
-        temperature = np.asarray(temperature_b)
         wind_direction = np.asarray(wind_direction_b)
+        wind_direction[wind_direction== -999]=np.nan
         #Converte a direção de graus para radianos
         wind_direction = np.deg2rad(wind_direction)
         wind_speed = np.asarray(wind_speed_b)
+        wind_speed[wind_speed== -999]=np.nan
         lons = np.asarray(lons_b)
+        lons[lons== -999]=np.nan
         lats = np.asarray(lats_b)
+        lats[lats== -999]=np.nan
             
         # Calculating the u and v components using the wind_speed and wind direction
         # in order to plot the barbs. Referedmwe:
@@ -296,5 +280,3 @@ def process_dmw(file_dmw,file_fundo,v_extent):
     
     logging.info(f'Derived Motion Winds - Tempo de Processamento: {round((time.time() - start), 2)} segundos.')
     
-    # plt.savefig(f'{dir_out}dmw\\dmw_{yyyymmddhhmn}.png', dpi=d_p_i, pad_idmwhes=0,bbox_idmwhes='tight')
-    # plt.show()
